@@ -4,4 +4,3 @@ numpy==2.5.1
 packaging==26.2
 pyerfa==2.0.1.5
 PyYAML==6.0.3
-scipy==1.18.0
