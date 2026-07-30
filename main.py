@@ -52,11 +52,11 @@ def read_table_23c():
 def do_computation(season, year):
     jde_0 = table_jde_0(season, year)
     t = (jde_0 - 2451545.0) / 36525
-    w = 35999.373 * t - 2.47
-    w_radians = np.radians(w)
+    w_degrees = 35999.373 * t - 2.47
+    w_radians = np.radians(w_degrees)
     dl = 1 + 0.0334 * np.cos(w_radians) + 0.0007 * np.cos(2 * w_radians)
-    a, b, c = read_table_23c()
-    s = np.sum(a * np.cos(np.radians(b + c * t)))
+    a, b_degrees, c_degrees = read_table_23c()
+    s = np.sum(a * np.cos(np.radians(b_degrees + c_degrees * t)))
     jde = jde_0 + (0.00001 * s) / dl
     time = Time(jde, format='jd')
     time.format = 'isot'
