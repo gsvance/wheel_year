@@ -2,7 +2,6 @@ import enum
 import sys
 
 from astropy.time import Time
-import astropy.units as u
 import numpy as np
 
 
@@ -45,20 +44,21 @@ def read_table_23c():
     data = np.loadtxt('table_23c.txt', dtype=np.float64, skiprows=6)
     data = data.reshape((12, 6))
     a = np.hstack((data[:, 0], data[:, 3]))
-    b = np.hstack((data[:, 1], data[:, 4])) * u.degree
-    c = np.hstack((data[:, 2], data[:, 5])) * u.degree
+    b = np.hstack((data[:, 1], data[:, 4]))
+    c = np.hstack((data[:, 2], data[:, 5]))
     return a, b, c
 
 
 def do_computation(season, year):
     jde_0 = table_jde_0(season, year)
     t = (jde_0 - 2451545.0) / 36525
-    w = (35999.373 * u.deg) * t - (2.47 * u.deg)
-    dl = 1 + 0.0334 * np.cos(w) + 0.0007 * np.cos(2*w)
+    w = 35999.373 * t - 2.47
+    w_radians = np.radians(w)
+    dl = 1 + 0.0334 * np.cos(w_radians) + 0.0007 * np.cos(2 * w_radians)
     a, b, c = read_table_23c()
-    s = np.sum(a * np.cos(b + c * t))
+    s = np.sum(a * np.cos(np.radians(b + c * t)))
     jde = jde_0 + (0.00001 * s) / dl
-    time = Time(jde * u.day, format='jd')
+    time = Time(jde, format='jd')
     time.format = 'isot'
     return time
 
