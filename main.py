@@ -6,7 +6,7 @@ import zoneinfo
 import numpy as np
 
 
-class Season(enum.Enum):
+class Season(enum.IntEnum):
     SPRING = 0
     SUMMER = 1
     AUTUMN = 2
@@ -23,32 +23,34 @@ def extract_floats(table):
     return floats
 
 
+TABLE_23B = '''
+           const              y            y**2        y**3        y**4
+mar    2451623.80984    +365242.37404    +0.05169    -0.00411    -0.00057
+jun    2451716.56767    +365241.62603    +0.00325    +0.00888    -0.00030
+sep    2451810.21715    +365242.01767    -0.11575    +0.00337    +0.00078
+dec    2451900.05952    +365242.74049    -0.06223    -0.00823    +0.00032
+'''
+
+TABLE_23B_FLOATS = extract_floats(TABLE_23B)
+assert len(TABLE_23B_FLOATS) == 5 * 4
+
+# The first 5 coefficients are for the spring equinox, the second five are for
+# the summer solstice, and so on...
+JDE_0_COEFFICIENTS = {
+    season: np.array(TABLE_23B_FLOATS[5*season:5*season+5])
+    for season in Season
+}
+
+
 def table_jde_0(season, year):
     assert 1000 <= year <= 3000
     y = (year - 2000) / 1000
-    match season:
-        case Season.SPRING:
-            return (
-                2451623.80984 + 365242.37404 * y + 0.05169 * y**2
-                - 0.00411 * y**3 - 0.00057 * y**4
-            )
-        case Season.SUMMER:
-            return (
-                2451716.56767 + 365241.62603 * y + 0.00325 * y**2
-                + 0.00888 * y**3 - 0.00030 * y**4
-            )
-        case Season.AUTUMN:
-            return (
-                2451810.21715 + 365242.01767 * y - 0.11575 * y**2
-                + 0.00337 * y**3 + 0.00078 * y**4
-            )
-        case Season.WINTER:
-            return (
-                2451900.05952 + 365242.74049 * y - 0.06223 * y**2
-                - 0.00823 * y**3 + 0.00032 * y**4
-            )
-        case _:
-            assert False, 'unreachable'
+
+    # There are better ways to evaluate a polynomial, but I'm not using those
+    # methods at the moment
+    coefficients = JDE_0_COEFFICIENTS[season]
+    y_powers = y ** np.arange(coefficients.size)
+    return np.sum(coefficients * y_powers)
 
 
 TABLE_23C = '''
