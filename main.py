@@ -13,6 +13,16 @@ class Season(enum.Enum):
     WINTER = 3
 
 
+def extract_floats(table):
+    floats = []
+    for cell in table.split():
+        try:
+            floats.append(float(cell))
+        except ValueError:
+            pass
+    return floats
+
+
 def table_jde_0(season, year):
     assert 1000 <= year <= 3000
     y = (year - 2000) / 1000
@@ -41,13 +51,30 @@ def table_jde_0(season, year):
             assert False, 'unreachable'
 
 
-def read_table_23c():
-    data = np.loadtxt('table_23c.txt', dtype=np.float64, skiprows=6)
-    data = data.reshape((12, 6))
-    a = np.hstack((data[:, 0], data[:, 3]))
-    b = np.hstack((data[:, 1], data[:, 4]))
-    c = np.hstack((data[:, 2], data[:, 5]))
-    return a, b, c
+TABLE_23C = '''
+ A       B            C        A       B           C
+485    324.96      1934.136    45    247.54    29929.562
+203    337.23     32964.467    44    325.15    31555.956
+199    342.08        20.186    29     60.93     4443.417
+182     27.85    445267.112    18    155.12    67555.328
+156     73.14     45036.886    17    288.79     4562.452
+136    171.52     22518.443    16    198.04    62894.029
+ 77    222.54     65928.934    14    199.76    31436.921
+ 74    296.72      3034.906    12     95.39    14577.848
+ 70    243.58      9037.513    12    287.11    31931.756
+ 58    119.81     33718.147    12    320.81    34777.259
+ 52    297.17       150.678     9    227.73     1222.114
+ 50     21.02      2281.226     8     15.45    16859.074
+'''
+
+ABC = extract_floats(TABLE_23C)
+
+# The first ABC value is an A value, the second is a B value, the third is a C
+# value, the fourth is an A value, the fifth is a B value, and so on...
+A = np.array(ABC[0::3])
+B_DEGREES = np.array(ABC[1::3])
+C_DEGREES = np.array(ABC[2::3])
+assert A.size == B_DEGREES.size == C_DEGREES.size == 24
 
 
 def jd_to_dt(jd):
@@ -96,8 +123,7 @@ def do_computation(season, year):
     w_degrees = 35999.373 * t - 2.47
     w_radians = np.radians(w_degrees)
     dl = 1 + 0.0334 * np.cos(w_radians) + 0.0007 * np.cos(2 * w_radians)
-    a, b_degrees, c_degrees = read_table_23c()
-    s = np.sum(a * np.cos(np.radians(b_degrees + c_degrees * t)))
+    s = np.sum(A * np.cos(np.radians(B_DEGREES + C_DEGREES * t)))
     jde = jde_0 + (0.00001 * s) / dl
     return jd_to_dt(jde)
 
