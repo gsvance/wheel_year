@@ -1,6 +1,7 @@
 import datetime as dt
 import enum
 import sys
+import zoneinfo
 
 import numpy as np
 
@@ -83,7 +84,10 @@ def jd_to_dt(jd):
 
     microsecond = round(1_000_000 * second_fraction)
 
-    return dt.datetime(year, month, day, hour, minute, second, microsecond)
+    return dt.datetime(
+        year, month, day, hour, minute, second, microsecond,
+        tzinfo=zoneinfo.ZoneInfo('UTC'),
+    )
 
 
 def do_computation(season, year):
@@ -95,13 +99,12 @@ def do_computation(season, year):
     a, b_degrees, c_degrees = read_table_23c()
     s = np.sum(a * np.cos(np.radians(b_degrees + c_degrees * t)))
     jde = jde_0 + (0.00001 * s) / dl
-    #time = Time(jde, format='jd')
-    #time.format = 'isot'
-    #return time
     return jd_to_dt(jde)
 
 
-def main(year):
+def main(year, utc=''):
+    year = int(year)
+    assert utc in ('', 'utc')
 
     # Need previous winter solstice for figuring out February cross-quarter
     prev_winter = do_computation(Season.WINTER, year - 1)
@@ -118,19 +121,26 @@ def main(year):
     aug = summer + (autumn - summer) / 2
     nov = autumn + (winter - autumn) / 2
 
+    if utc:
+        tz = zoneinfo.ZoneInfo('UTC')
+    else:
+        tz = zoneinfo.ZoneInfo('localtime')
+
     print('SOLSTICES, EQUINOXES, AND CROSS-QUARTERS')
-    print(f'Year: {year}')
+    print(f'  Input Year: {year}')
+    print(f'   Time Zone: {"UTC" if utc else "local"}')
     print()
-    print(f'   Cross: {feb!s}')
-    print(f'  Spring: {spring!s}')
-    print(f'   Cross: {may!s}')
-    print(f'  Summer: {summer!s}')
-    print(f'   Cross: {aug!s}')
-    print(f'  Autumn: {autumn!s}')
-    print(f'   Cross: {nov!s}')
-    print(f'  Winter: {winter!s}')
+    print(f'     Cross: {feb.astimezone(tz)!s}')
+    print(f'    Spring: {spring.astimezone(tz)!s}')
+    print(f'     Cross: {may.astimezone(tz)!s}')
+    print(f'    Summer: {summer.astimezone(tz)!s}')
+    print(f'     Cross: {aug.astimezone(tz)!s}')
+    print(f'    Autumn: {autumn.astimezone(tz)!s}')
+    print(f'     Cross: {nov.astimezone(tz)!s}')
+    print(f'    Winter: {winter.astimezone(tz)!s}')
+    print()
 
 
 if __name__ == '__main__':
-    _, arg_1 = sys.argv
-    main(int(arg_1))
+    _, *args = sys.argv
+    main(*args)
