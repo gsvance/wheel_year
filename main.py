@@ -24,15 +24,15 @@ def extract_floats(table):
 
 
 TABLE_23B = '''
-           const              y            y**2        y**3        y**4
-mar    2451623.80984    +365242.37404    +0.05169    -0.00411    -0.00057
-jun    2451716.56767    +365241.62603    +0.00325    +0.00888    -0.00030
-sep    2451810.21715    +365242.01767    -0.11575    +0.00337    +0.00078
-dec    2451900.05952    +365242.74049    -0.06223    -0.00823    +0.00032
+              const              y            y**2        y**3        y**4
+spring    2451623.80984    +365242.37404    +0.05169    -0.00411    -0.00057
+summer    2451716.56767    +365241.62603    +0.00325    +0.00888    -0.00030
+autumn    2451810.21715    +365242.01767    -0.11575    +0.00337    +0.00078
+winter    2451900.05952    +365242.74049    -0.06223    -0.00823    +0.00032
 '''
 
 TABLE_23B_FLOATS = extract_floats(TABLE_23B)
-assert len(TABLE_23B_FLOATS) == 5 * 4
+assert len(TABLE_23B_FLOATS) == 4 * 5  # Rows * columns
 
 # The first 5 coefficients are for the spring equinox, the second five are for
 # the summer solstice, and so on...
@@ -40,6 +40,7 @@ JDE_0_COEFFICIENTS = {
     season: np.array(TABLE_23B_FLOATS[5*season:5*season+5])
     for season in Season
 }
+assert {c.size for c in JDE_0_COEFFICIENTS.values()} == {5}
 
 
 def table_jde_0(season, year):
@@ -54,28 +55,29 @@ def table_jde_0(season, year):
 
 
 TABLE_23C = '''
- A       B            C        A       B           C
-485    324.96      1934.136    45    247.54    29929.562
-203    337.23     32964.467    44    325.15    31555.956
-199    342.08        20.186    29     60.93     4443.417
-182     27.85    445267.112    18    155.12    67555.328
-156     73.14     45036.886    17    288.79     4562.452
-136    171.52     22518.443    16    198.04    62894.029
- 77    222.54     65928.934    14    199.76    31436.921
- 74    296.72      3034.906    12     95.39    14577.848
- 70    243.58      9037.513    12    287.11    31931.756
- 58    119.81     33718.147    12    320.81    34777.259
- 52    297.17       150.678     9    227.73     1222.114
- 50     21.02      2281.226     8     15.45    16859.074
+ A       B            C        |    A       B           C
+485    324.96      1934.136    |    45    247.54    29929.562
+203    337.23     32964.467    |    44    325.15    31555.956
+199    342.08        20.186    |    29     60.93     4443.417
+182     27.85    445267.112    |    18    155.12    67555.328
+156     73.14     45036.886    |    17    288.79     4562.452
+136    171.52     22518.443    |    16    198.04    62894.029
+ 77    222.54     65928.934    |    14    199.76    31436.921
+ 74    296.72      3034.906    |    12     95.39    14577.848
+ 70    243.58      9037.513    |    12    287.11    31931.756
+ 58    119.81     33718.147    |    12    320.81    34777.259
+ 52    297.17       150.678    |     9    227.73     1222.114
+ 50     21.02      2281.226    |     8     15.45    16859.074
 '''
 
-ABC = extract_floats(TABLE_23C)
+TABLE_23C_FLOATS = extract_floats(TABLE_23C)
+assert len(TABLE_23C_FLOATS) == 12 * (3 + 3)  # Rows * columns
 
 # The first ABC value is an A value, the second is a B value, the third is a C
 # value, the fourth is an A value, the fifth is a B value, and so on...
-A = np.array(ABC[0::3])
-B_DEGREES = np.array(ABC[1::3])
-C_DEGREES = np.array(ABC[2::3])
+A = np.array(TABLE_23C_FLOATS[0::3])
+B_DEGREES = np.array(TABLE_23C_FLOATS[1::3])
+C_DEGREES = np.array(TABLE_23C_FLOATS[2::3])
 assert A.size == B_DEGREES.size == C_DEGREES.size == 24
 
 
